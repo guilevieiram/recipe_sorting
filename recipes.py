@@ -126,7 +126,7 @@ class Recipes():
 		self.training_data["recipe_techniques_vector"] = grouped
 
 
-	# miscelanious functions
+	# assigning functions (should be called inside pandas assign method)
 	def find_technique_name(self, id_list):
 		result = []
 		for id in id_list:
@@ -166,7 +166,6 @@ class Recipes():
 		pass
 
 	
-
 
 if __name__ == "__main__":
 
