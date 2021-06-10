@@ -126,6 +126,7 @@ class Recipes():
 		self.training_data["recipe_techniques_vector"] = grouped
 
 
+	# miscelanious functions
 	def find_technique_name(self, id_list):
 		result = []
 		for id in id_list:
@@ -137,6 +138,18 @@ class Recipes():
 		for id in id_list:
 			result.append(self.listings['badges']['name'][id])
 		return result
+
+	def count_number_methods(self, id_list):
+		result = []
+		num_methods_per_recipe = pd.DataFrame(self.evaluation_data['recipe_methods']['recipe_id'].value_counts())
+		num_methods_per_recipe.rename(columns={'recipe_id': 'num_methods'}, inplace=True)
+
+		for id in id_list:
+			recipe_id = self.evaluation_data['recipe_methods'].at[id, 'recipe_id']
+			result.append(num_methods_per_recipe.at[recipe_id, 'num_methods'])
+
+		return result
+
 
 	# HAVENT FOUND ANYTHING COOL TO USE HERE YET AND IM NOT PRONED TO DO IT MYSELF	
 	def sort_ingredients(self):
