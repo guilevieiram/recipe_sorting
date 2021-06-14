@@ -3,10 +3,14 @@ import numpy as np
 import os, json, spacy
 from collections import Counter
 
-'''to install run on comand line:
+'''
+to install spacy sm module run on comand line:
 pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.1/en_core_web_sm-2.3.1.tar.gz
 or if you're using conda, run:
 conda install -c conda-forge spacy-model-en_core_web_sm
+
+to install larger spacy model (en_core_web_lg) run on terminal:
+python -m spacy download en_core_web_lgs
 '''
 
 nlp = spacy.load("en_core_web_sm")
