@@ -1,11 +1,20 @@
-import pandas as pd, spacy
+import pandas as pd
 import numpy as np
-import os, json, spacy
-from collections import Counter
+import os, spacy
 import sqlite3
-from sklearn.model_selection import train_test_split
 from operator import add
 from functools import reduce
+
+from sklearn.model_selection import train_test_split
+import torch
+import transformers
+from transformers import BertForSequenceClassification, BertTokenizer
+'''
+To install latest version of HuggingFace transformers:
+pip install git+https://github.com/huggingface/transformers
+You may need to:
+pip install sentencepiece
+'''
 
 nlp = spacy.load("en_core_web_sm")
 '''
@@ -164,6 +173,27 @@ class Recipes():
 			else: results.append('others')
 		return results
 
+	def predict_techniques(self, description, model, tokenizer, treshold=0.5):
+		# create techniques_list
+		techniques_list = list(self.listings['techniques']['name'])
+
+		# Tokenize inputs
+		input = tokenizer(description, return_tensors='pt')
+		# Initializes labels
+		labels = torch.LongTensor([0])
+		# Calculate outputs from given model
+		output = model(**input, labels=labels)
+		# Logist values from the output (without gradient)
+		logits = output.logits.detach().squeeze()
+		# Calculating probabilities from output
+		probabilities = torch.sigmoid(logits)
+		# Passing proabilities through treshold
+		predicted_bools = [(prob>treshold).item() for prob in probabilities]
+		# Assigning list with predicted techiques
+		predicted_techniques = [technique for (technique, boolean) in zip(techniques_list, predicted_bools) if boolean]
+
+		return predicted_techniques
+
 
 	# Prepping data methods
 	def prep_data_classapp(self):
@@ -303,7 +333,40 @@ class Recipes():
 
 	# probably will be made using transformers model
 	def sort_techniques(self):
-		pass
+
+		# Set up model in the CPU (this could be changed to gpu for better performance)
+		path = r'model/BERT_model'
+		model = torch.load(path, map_location=torch.device('cpu'))
+		model.eval()
+
+		# Set up tokenizer
+		tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
+		# Set up mapping function
+		mapping = lambda df: self.predict_techniques(df, model, tokenizer)
+
+		# Predicting and mapping on output dataframe
+		predictions = self.evaluation_data['recipe_methods']['description'][0:10].map(mapping)
+
+		# Format for self.output dataframe
+		self.output_data['recipe_techniques'] = pd.DataFrame(columns=['recipe_id', 'method_id', 'technique'])
+
+		# Insert techniques
+		for method_id in range(predictions.shape[0]):
+			for technique in predictions[method_id]:
+				self.output_data['recipe_techniques'] = self.output_data['recipe_techniques'].append({
+					'method_id': method_id,
+					'technique': technique
+				}, ignore_index=True)
+
+		# Assigning recipe id 
+		assign_recipe_id = lambda x: self.evaluation_data['recipe_methods'].at[x, 'recipe_id']
+		self.output_data['recipe_techniques']['recipe_id'] = self.output_data['recipe_techniques']['method_id'].map(assign_recipe_id)
+
+		# Assigning method description
+		assign_method_description = lambda x: self.evaluation_data['recipe_methods'].at[x, 'description']
+		self.output_data['recipe_techniques']['description'] = self.output_data['recipe_techniques']['method_id'].map(assign_method_description)
+
 
 # MISCELLANEOUS FUNCTIONS
 def lemmatize (evaluation_string):
@@ -318,10 +381,10 @@ if __name__ == "__main__":
 
 	cuukin.import_data(training_folder = "training", listings_folder = "listings", evaluation_folder='evaluation')
 
-	cuukin.word_frequency_analysis()
+	# cuukin.word_frequency_analysis()
 
-	cuukin.prep_data_classapp()
+	# cuukin.prep_data_classapp()
 
-	cuukin.prep_data_bert()
+	# cuukin.prep_data_bert()
 
 	cuukin.sort_techniques()
