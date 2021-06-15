@@ -89,5 +89,10 @@ Most of the code was provided by Ronak Patel (github.com/rap12391) in this wonde
 In short, it uses a pre-treined BERT classification model, provided by HuggingFace and uses logist functions to addapt the final layer to output probabilities. This probabilities pass through a setted threshold (0.50) to be classified as yes or no. Since these probabilities don't go under a softmax function we can have more than one value above 0.50, hence our multi label classification!
 If you want to know more about transformers and bert access huggingface.co
 
+### model
+On this folder is the BERT model, downloaded from CoLab after the recipe_classification_bert.ipynb was executed.
+This model is imported by the recipe.py to do the technique sorting on the given evaluation data.
+
+
 # Results
 As of 16th of June, we are on the data collection phase. Soon we'll be able to train the model and apply it on the BBC data base!
