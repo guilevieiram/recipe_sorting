@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from operator import add
 from functools import reduce
 
+nlp = spacy.load("en_core_web_sm")
 '''
 to install spacy sm module run on comand line:
 pip install https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.1/en_core_web_sm-2.3.1.tar.gz
@@ -16,15 +17,7 @@ conda install -c conda-forge spacy-model-en_core_web_sm
 to install larger spacy model (en_core_web_lg) run on terminal:
 python -m spacy download en_core_web_lgs
 '''
-
-nlp = spacy.load("en_core_web_sm")
 	
-# MISCELLANEOUS FUNCTIONS
-def lemmatize (evaluation_string):
-    doc = nlp(evaluation_string)
-    lemmatized = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
-    return lemmatized
-
 # MAIN CLASS
 class Recipes():
 
@@ -102,11 +95,13 @@ class Recipes():
 					self.evaluation_data[table_name] = pd.read_json(path_or_buf = path)
 				self.evaluation_data[table_name].set_index("id", inplace = True)
 
+		self.prep_data()
+
 	def word_frequency_analysis (self):
 		# Saving all lemmatized methods to a doc
 		doc = []
 		for description in self.evaluation_data["recipe_methods"]["description"]:
-			doc += lemmatize(description)
+			doc += lemmatize(str(description))
 
 		# Finding distribution on absolute and relative frequency
 		word_distribution_series = pd.DataFrame(doc, columns = ["words"]).value_counts()
@@ -173,9 +168,6 @@ class Recipes():
 	# Prepping data methods
 	def prep_data_classapp(self):
 
-		# Assigning badge name to techniques
-		self.listings['techniques'] = self.listings['techniques'].assign(badge_name = self.find_badge_name(self.listings['techniques']['badge_id']))
-		
 		# Creating techniques df
 		techniques_df = self.listings['techniques'][['name', 'badge_id', 'badge_name']]
 		techniques_df.rename_axis('techniques_id', inplace=True)
@@ -184,11 +176,6 @@ class Recipes():
 		badges_df = self.listings['badges'][self.listings['badges']['category']=='technique']
 		badges_df = badges_df[['name']]
 		badges_df.rename_axis('badges_id', inplace=True)
-
-		# Fixing methods data types
-		self.evaluation_data['recipe_methods'].dropna(axis='index', inplace=True)
-		self.evaluation_data['recipe_methods'].index = self.evaluation_data['recipe_methods'].index.astype('int')
-		self.evaluation_data['recipe_methods'] = self.evaluation_data['recipe_methods'].astype({'recipe_id': 'int'})
 
 		# Creating methods df
 		methods_df = self.evaluation_data['recipe_methods']
@@ -292,9 +279,18 @@ class Recipes():
 		grouped = grouped.sum()
 		self.training_data["recipe_techniques_vector"] = grouped
 
+	def prep_data(self):
+
+		# Fixing casting types on evaluation methods
+		self.evaluation_data['recipe_methods'].dropna(axis='index', inplace=True)
+		self.evaluation_data['recipe_methods'].index = self.evaluation_data['recipe_methods'].index.astype('int')
+		self.evaluation_data['recipe_methods'] = self.evaluation_data['recipe_methods'].astype({'recipe_id': 'int'})
+
+		# Assigning badge name to techniques
+		self.listings['techniques'] = self.listings['techniques'].assign(badge_name = self.find_badge_name(self.listings['techniques']['badge_id']))
 
 	# Sorting methods
-	
+
 	# HAVENT FOUND ANYTHING COOL TO USE HERE YET AND IM NOT PRONED TO DO IT MYSELF	
 	def sort_ingredients(self):
 		pass
@@ -309,17 +305,23 @@ class Recipes():
 	def sort_techniques(self):
 		pass
 
-	
+# MISCELLANEOUS FUNCTIONS
+def lemmatize (evaluation_string):
+    doc = nlp(evaluation_string)
+    lemmatized = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
+    return lemmatized
+
 
 if __name__ == "__main__":
 
-	# self = Recipes()
-	# self.import_data(training_folder = "training", listings_folder = "listings", evaluation_folder='evaluation')
+	cuukin = Recipes()
 
-		
-	'''
-	IDEAS:
-	- for converting techniques names to binary values in several columns use onehot encoding (sklearn)
-	- sklearn divides data in train and test
-	
-	'''
+	cuukin.import_data(training_folder = "training", listings_folder = "listings", evaluation_folder='evaluation')
+
+	cuukin.word_frequency_analysis()
+
+	cuukin.prep_data_classapp()
+
+	cuukin.prep_data_bert()
+
+	cuukin.sort_techniques()
