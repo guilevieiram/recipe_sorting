@@ -1,4 +1,4 @@
-# recipe_sorting
+# recipe_sorting (old)
 
 This is a first attempt to classify recipes in techniques, ingredients and tools using their methods (text) as entries.
 The core methodology is to use word2vec to compare similarity between groups of words in a given method and a technique name for example. 
