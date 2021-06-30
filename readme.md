@@ -57,7 +57,7 @@ This is the output folder containing all the csv tables:
 ## ClassApp
 Since the amount of data was not enough to train a model, we had to collect more data. 
 For this I created a simple GUI app on python (Cuukin ClassApp) for users to play and classify recipe methods into their culinary techniques.
-More info on this side project on guilherme-vieira/classapp
+More info on this side project on githu.com/guilevieiram/classapp
 The methods used were extracted from the BBC DB. 
 You can find out how this is done on the "prepping_data_classapp.ipynb" notebook (on the notebooks folder)
 
