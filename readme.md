@@ -64,6 +64,7 @@ You can find out how this is done on the "prepping_data_classapp.ipynb" notebook
 ### classapp_output
 The results of this classification are saved as .db sqlite3 files in this folder.
 The naming is "data_XX.db" with XX being the initials of the user (GV, RC, WZ, ...)
+This tables pass to a processing before going into BERT. This consists of concatenating all recults, merging some of the columns together (e.g. all chopping related techniques goes into 'chopping+') and excluding techniques that weren't mentioned in any classification. This reduces the number of categories, bettering our results!
 
 ## Syntetic data
 In order to expand this data and get better results on our classification, we tried to create alternative sentences for each recipe method without altering the meaning of the initial sentence. 
