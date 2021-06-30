@@ -273,13 +273,29 @@ class Recipes():
 		# Joining the descriptions
 		classified_methods = pd.concat([description_by_method_id, vectorized_methods], axis='columns').reset_index(drop=True)
 
-		# Listing the methods
-		techniques = list(classified_methods.columns[1:])
+		# Defining techniques to be joined together
+		joined_columns = {
+				'Seasoning+': ['Salting', 'Seasoning'],
+				'Pan Frying+': ['Pan Frying', 'Stir Frying', 'Grilling', 'Sauteeing'],
+				'Boiling+': ['Boiling', 'Simmering', 'Reducing'],
+				'Chopping+': ['Roughly Chopping', 'Slicing', 'Chopping Fruits', 'Chopping Mushroom', 'Chopping Herbs', 'Mincing', 'Batonnet', 'Dicing'],
+		}
 
+		# Joining those columns
+		for key in list(joined_columns.keys()):
+				column = joined_columns[key]
+				classified_methods[key] = classified_methods.loc[:, column].sum(axis=1)
+				classified_methods.drop(columns=column, inplace=True)
+
+		# Deleting unused columns
+		for column in classified_methods.columns:
+				if set(classified_methods[column]) == {0}:
+						classified_methods.drop(columns=[column], inplace=True)
+						
 		# Fixing anomalies in the table
-		for technique in techniques:
-			classified_methods.loc[classified_methods[technique] > 1, technique] = 1
-			classified_methods.loc[classified_methods[technique] < 0, technique] = 0
+		for column in classified_methods.columns[1:]:
+				classified_methods.loc[classified_methods[column] > 1, column] = 1
+				classified_methods.loc[classified_methods[column] < 0, column] = 0
 
 		# Separating data in train and testing
 		df_train, df_test = train_test_split(classified_methods, test_size=0.2, random_state=42)
@@ -385,6 +401,6 @@ if __name__ == "__main__":
 
 	# cuukin.prep_data_classapp()
 
-	# cuukin.prep_data_bert()
+	cuukin.prep_data_bert()
 
-	cuukin.sort_techniques()
+	# cuukin.sort_techniques()
